@@ -1,13 +1,37 @@
+const multer = require('multer');
+const fs = require('fs');
+const upload = multer({dest: 'files/'});
+const express = require('express');
+
 let fileUpload = (app) => {
-    app.post('/upload', (req, res) => {
-        console.log(req.body);
-        //console.log(req.files);
-        res.send('file upload complete');
+
+    const multerUpload = upload.single('photo');
+
+    app.post('/upload', multerUpload, (req, res) => {
+
+        let originalName = req.file.originalname;
+        let fileName = req.file.filename;
+        let currentFilePath = req.file.path;
+
+        let newFilePath = `files/${fileName}-${originalName}`;
+
+        fs.rename(currentFilePath, newFilePath, (error) => {
+            if (error) {
+                res.send('file upload failed');
+            } else {
+                res.send('file upload complete');
+            }
+        });
     })
+}
+
+let filePreview = (app) => {
+    app.use('/images', express.static('files/'));
 }
 
 let Upload = (app) => {
     fileUpload(app);
+    filePreview(app);
 }
 
 module.exports = Upload;
